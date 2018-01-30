@@ -1,0 +1,15 @@
+{
+  "name": "safe-transfer-token",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yukishige Nakajo <nakajo@haw.co.jp> (http://y-nakajo.hatenablog.com/)",
+  "license": "ISC",
+  "dependencies": {
+    "truffle": "^4.0.5",
+    "zeppelin-solidity": "^1.6.0"
+  }
+}
