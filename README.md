@@ -24,7 +24,9 @@ receiverは実際にtokenを受け取るためにはsenderがtransferした後�
 
 ## 送金キャンセル
 1. senderはtransferを呼び出し、任意のaddressに任意tokenを送金する
-1. senderはcancelFromに1.を呼び出し、1.の送金を取り消す
+1. senderはcancelFromを呼び出し、1.の送金を取り消す
+
+詳しくはtestを参照。
 
 # Issue
 * cancelとreceiveのタイミングで意図しないtokenの移動が起きないか？（多分起きないようにはしてるとは思うが。。。）
