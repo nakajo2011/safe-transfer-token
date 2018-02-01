@@ -10,6 +10,8 @@ contract SafeTransferToken is StandardToken {
   mapping(address => address[]) internal receivables;
   mapping(address => uint256) internal depositing;
 
+  event Cancel(address indexed from, address indexed to);
+
   /**
   * @dev does not tranfer because avoid loss. this methods only record approval info.
   *      after, receiver need call recieve() for transfer.
@@ -51,9 +53,28 @@ contract SafeTransferToken is StandardToken {
     return true;
   }
 
-  function receive() public returns(bool) {
+  function receiveAll() public returns(bool) {
     address[] memory table = receivables[msg.sender];
     require(table.length > 0);
+    return true;
+  }
+
+  /**
+   * @dev Receive tokens from _sender.
+   * @param _sender address The address which depositer.
+   */
+  function receiveFrom(address _sender) public returns(bool) {
+    require(allowed[_sender][msg.sender] > 0);
+    return transferFrom(_sender, msg.sender, allowed[_sender][msg.sender]);
+  }
+
+  function cancelTransfer(address _spender) public returns(bool) {
+    require(allowed[msg.sender][_spender] > 0);
+    uint value = allowed[msg.sender][_spender];
+    depositing[msg.sender] = depositing[msg.sender].sub(value);
+    allowed[msg.sender][_spender] = 0;
+
+    Cancel(msg.sender, _spender);
     return true;
   }
 
@@ -66,7 +87,7 @@ contract SafeTransferToken is StandardToken {
     uint balance = 0;
     for(uint i=0; i< receivables[_owner].length; i++) {
       address depositer = receivables[_owner][i];
-      balance += allowed[depositer][msg.sender];
+      balance += allowed[depositer][_owner];
     }
     return balance;
   }
@@ -78,6 +99,10 @@ contract SafeTransferToken is StandardToken {
   */
   function receivablesCount(address _owner) public constant returns (uint) {
     return receivables[_owner].length;
+  }
+
+  function hasReceivableOf(address depositer) public constant returns (bool) {
+    return allowed[depositer][msg.sender] > 0;
   }
 
   /**
