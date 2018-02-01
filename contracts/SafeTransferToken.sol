@@ -8,7 +8,9 @@ import '../node_modules/zeppelin-solidity/contracts/token/ERC20/StandardToken.so
 contract SafeTransferToken is StandardToken {
 
   mapping(address => address[]) internal receivables;
+  mapping(address => mapping(address => uint256)) internal receivableSendersIndex;
   mapping(address => uint256) internal depositing;
+  mapping(address => uint256) internal receivableBalances;
 
   event Cancel(address indexed from, address indexed to);
 
@@ -22,10 +24,14 @@ contract SafeTransferToken is StandardToken {
     require(_to != address(0));
     require(_value <= balanceOf(msg.sender));
 
-    allowed[msg.sender][_to] = _value;
-    receivables[_to].push(msg.sender); //register sender address.
-    depositing[msg.sender] = depositing[msg.sender].add(_value);
+    if (receivableSendersIndex[_to][msg.sender] == 0) {
+      receivableSendersIndex[_to][msg.sender] = receivables[_to].push(msg.sender); //register sender address.
+    }
+
+    allowed[msg.sender][_to] = allowed[msg.sender][_to].add(_value);
     Approval(msg.sender, _to, _value);
+    depositing[msg.sender] = depositing[msg.sender].add(_value);
+    receivableBalances[_to] = receivableBalances[_to].add(_value);
     return true;
   }
 
@@ -48,14 +54,9 @@ contract SafeTransferToken is StandardToken {
     balances[_to] = balances[_to].add(_value);
     allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
     depositing[_from] = depositing[_from].sub(_value);
+    receivableBalances[_to] = receivableBalances[_to].sub(_value);
 
     Transfer(_from, _to, _value);
-    return true;
-  }
-
-  function receiveAll() public returns(bool) {
-    address[] memory table = receivables[msg.sender];
-    require(table.length > 0);
     return true;
   }
 
@@ -63,15 +64,16 @@ contract SafeTransferToken is StandardToken {
    * @dev Receive tokens from _sender.
    * @param _sender address The address which depositer.
    */
-  function receiveFrom(address _sender) public returns(bool) {
+  function receiveFrom(address _sender) public returns (bool) {
     require(allowed[_sender][msg.sender] > 0);
     return transferFrom(_sender, msg.sender, allowed[_sender][msg.sender]);
   }
 
-  function cancelTransfer(address _spender) public returns(bool) {
+  function cancelTransfer(address _spender) public returns (bool) {
     require(allowed[msg.sender][_spender] > 0);
     uint value = allowed[msg.sender][_spender];
     depositing[msg.sender] = depositing[msg.sender].sub(value);
+    receivableBalances[_spender] = receivableBalances[_spender].sub(value);
     allowed[msg.sender][_spender] = 0;
 
     Cancel(msg.sender, _spender);
@@ -84,21 +86,7 @@ contract SafeTransferToken is StandardToken {
   * @return An uint256 representing the amount owned by the passed address.
   */
   function receivableBalancesOf(address _owner) public constant returns (uint) {
-    uint balance = 0;
-    for(uint i=0; i< receivables[_owner].length; i++) {
-      address depositer = receivables[_owner][i];
-      balance += allowed[depositer][_owner];
-    }
-    return balance;
-  }
-
-  /**
-  * @dev Gets the received count of the specified address.
-  * @param _owner The address to query the the receiveable of.
-  * @return An uint256 representing the number of receivable owned by the passed address.
-  */
-  function receivablesCount(address _owner) public constant returns (uint) {
-    return receivables[_owner].length;
+    return receivableBalances[_owner];
   }
 
   function hasReceivableOf(address depositer) public constant returns (bool) {
