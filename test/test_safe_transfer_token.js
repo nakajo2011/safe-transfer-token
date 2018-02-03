@@ -97,7 +97,75 @@ contract('TestSafeTransferToken', (accounts) => {
         const balance = await ins.balanceOf(receiver)
         assert.equal(200 * 10 ** 18, balance.toNumber())
       })
+    })
 
+    describe("#4 increaseApproval test", () => {
+      let ins, owner, receiver;
+      before(async () => {
+        owner = accounts[0]
+        receiver = accounts[1]
+        ins = await TestToken.new()
+        await ins.transfer(receiver, 100 * 10 ** 18)
+        await ins.increaseApproval(receiver, 100 * 10 ** 18)
+      })
+
+      it("#4-1 balance change to 9800.", async () => {
+        const balanceOfOwner = await ins.balanceOf(owner)
+        assert.equal(9800 * 10 ** 18, balanceOfOwner.toNumber())
+      })
+      it("#4-2 receiver receivable balance is grow 200.", async () => {
+        const balanceOfReceiver = await ins.receivableBalancesOf(receiver)
+        assert.equal(200 * 10 ** 18, balanceOfReceiver.toNumber())
+      })
+      it("#4-3 receiver balances is 200 after receiveFrom", async () => {
+        await ins.receiveFrom(owner, {from: receiver})
+        const balance = await ins.balanceOf(receiver)
+        assert.equal(200 * 10 ** 18, balance.toNumber())
+      })
+    })
+
+    describe("#5 decreaseApproval test", () => {
+      let ins, owner, receiver;
+      before(async () => {
+        owner = accounts[0]
+        receiver = accounts[1]
+        ins = await TestToken.new()
+        await ins.transfer(receiver, 100 * 10 ** 18)
+        await ins.decreaseApproval(receiver, 10 * 10 ** 18)
+      })
+
+      it("#5-1 balance change to 9910.", async () => {
+        const balanceOfOwner = await ins.balanceOf(owner)
+        assert.equal(9910 * 10 ** 18, balanceOfOwner.toNumber())
+      })
+      it("#5-2 receiver receivable balance is grow 90.", async () => {
+        const balanceOfReceiver = await ins.receivableBalancesOf(receiver)
+        assert.equal(90 * 10 ** 18, balanceOfReceiver.toNumber())
+      })
+      it("#5-3 receiver balances is 90 after receiveFrom", async () => {
+        await ins.receiveFrom(owner, {from: receiver})
+        const balance = await ins.balanceOf(receiver)
+        assert.equal(90 * 10 ** 18, balance.toNumber())
+      })
+    })
+    describe("#6 decreaseApproval over amount test.", () => {
+      let ins, owner, receiver;
+      before(async () => {
+        owner = accounts[0]
+        receiver = accounts[1]
+        ins = await TestToken.new()
+        await ins.transfer(receiver, 100 * 10 ** 18)
+        await ins.decreaseApproval(receiver, 120 * 10 ** 18)
+      })
+
+      it("#6-1 balance recover.", async () => {
+        const balanceOfOwner = await ins.balanceOf(owner)
+        assert.equal(10000 * 10 ** 18, balanceOfOwner.toNumber())
+      })
+      it("#6-2 receiver receivable balance is zero.", async () => {
+        const balanceOfReceiver = await ins.receivableBalancesOf(receiver)
+        assert.equal(0, balanceOfReceiver.toNumber())
+      })
     })
   })
 })
