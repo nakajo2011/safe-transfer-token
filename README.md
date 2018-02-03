@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/nakajo2011/safe-transfer-token.svg?branch=master)](https://travis-ci.org/nakajo2011/safe-transfer-token)
 # safe-transfer-token
 # Overview
 安全に送金可能なToken実装
@@ -9,14 +10,14 @@ ERC-223ではまだまだtokenが失われる場合がある。なので、絶�
 
 # Problrem
 tokenが失われる原因は直接_toに対して転送してしまうところにある。
-_toが存在しているaddressなのか確認せずにすぐに転送するため、実際は存在しないaddressだったり、また存在していたとしてもそもそもtokenの受け取りを想定していないContractのaddressだったりするためににtokenの喪失が発生する。
+_toが存在しているaddressなのか確認せずにすぐに転送するため、実際は存在しないaddressだったり、または存在していたとしてもそもそもtokenの受け取りを想定していないContractのaddressだった場合にはtokenの喪失が発生する。
 
 # Specification
 上記問題を解決するため、このtokenではtransferと対応するreceiveを定義した。
 receiverは実際にtokenを受け取るためにはsenderがtransferした後にreceiveを呼び出す必要がある。
 また、senderが送金を取りやめることが可能なcancelも実装した。これによりヒューマンエラーで送金先addressを間違えていた場合などにsenderがtokenを取り戻すことができる。
 
-いかに、送金手順とキャンセルの手順を例示する
+以下に、送金手順とキャンセルの手順を例示する
 
 ## 送金
 1. senderはtransferを呼び出し、receiverに任意のtokenを送金する
