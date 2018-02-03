@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/nakajo2011/safe-transfer-token.svg?branch=master)](https://travis-ci.org/nakajo2011/safe-transfer-token)
+[![Dependency Status](https://gemnasium.com/badges/github.com/nakajo2011/safe-transfer-token.svg)](https://gemnasium.com/github.com/nakajo2011/safe-transfer-token)
+
 # safe-transfer-token
 # Overview
 安全に送金可能なToken実装
